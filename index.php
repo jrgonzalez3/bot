@@ -23,7 +23,12 @@ if (isset($update->message->text)) {
             $telegram->sendMessage($chatId, $data);
             break;
         case '/menu':
-            $menu = "/menu - Para mostrar el menu principal\n";
+            $menu = "/menu - Este es el menu principal\n";
+            //   $menu = "/menu - Para mostrar el menu principal\n";
+            $telegram->sendMessage($chatId, $menu);
+            break;
+        case '/Hola':
+            $menu = "HOla Dr\n";
             //   $menu = "/menu - Para mostrar el menu principal\n";
             $telegram->sendMessage($chatId, $menu);
             break;
