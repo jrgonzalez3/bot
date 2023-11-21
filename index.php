@@ -16,11 +16,11 @@ if (isset($update->message->text)) {
     $text = $update->message->text;
 
     if ($text === '/start') {
-        $bienvenida = 'Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar\n\n';
-        $menu = $bienvenida;
-        $menu .= ' /menu - mostrar menu\n';
+        $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
+        $data = $bienvenida;
+        $data .= "/menu - mostrar menu\n";
 
-        $telegram->sendMessage($chatId, $menu);
+        $telegram->sendMessage($chatId, $data);
 
     } else if ($text === 'Hola') {
         $telegram->sendMessage($chatId, 'Hola Doctor');
