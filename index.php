@@ -13,21 +13,22 @@ $update = json_decode(file_get_contents('php://input'));
 
 if (isset($update->message->text)) {
     $chatId = $update->message->chat->id;
-    $text = $update->message->text;
+    $message = $update->message->text;
 
-    if ($text === '/start') {
-        $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
-        $data = $bienvenida;
-        $data .= "/menu - mostrar menu\n";
+    switch ($message) {
+        case '/start':
+            $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
+            $data = $bienvenida;
+            $data .= "/menu - Para mostrar el menu principal\n";
+            $telegram->sendMessage($chatId, $data);
+        case '/menu':
+            $menu = "/menu - Para mostrar el menu principal\n";
+            $menu = "/menu - Para mostrar el menu principal\n";
+            $telegram->sendMessage($chatId, $menu);
+        default:
+            $defaultMessage = "Mi no entender ese comando";
+            $telegram->sendMessage($chatId, $defaultMessage);
 
-        $telegram->sendMessage($chatId, $data);
-
-    } else if ($text === 'Hola') {
-        $telegram->sendMessage($chatId, 'Hola Doctor');
-
-    } else {
-        $defaultMessage = "Mi no entender ese comando";
-        $telegram->sendMessage($chatId, $defaultMessage);
     }
 
 }
