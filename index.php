@@ -21,13 +21,18 @@ if (isset($update->message->text)) {
             $data = $bienvenida;
             $data .= "/menu - Para mostrar el menu principal\n";
             $telegram->sendMessage($chatId, $data);
+            break;
         case '/menu':
             $menu = "/menu - Para mostrar el menu principal\n";
-            $menu = "/menu - Para mostrar el menu principal\n";
+            //   $menu = "/menu - Para mostrar el menu principal\n";
             $telegram->sendMessage($chatId, $menu);
+            break;
+
         default:
             $defaultMessage = "Mi no entender ese comando";
             $telegram->sendMessage($chatId, $defaultMessage);
+            break;
+
 
     }
 
