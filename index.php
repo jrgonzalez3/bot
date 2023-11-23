@@ -48,22 +48,6 @@ $update = json_decode(file_get_contents('php://input'));
 if (isset($update->message->text)) {
     $chatId = $update->message->chat->id;
     $message = $update->message->text;
-
-    // Expresión regular para limpiar y validar el comando "/insertar"
-    $pattern = "/\/$mensaje\s+([0-9a-zA-Z]+)/";
-    $matches = [];
-
-    if (preg_match($pattern, $message, $matches)) {
-        // La expresión regular coincide, $matches[1] contiene el valor limpio
-        $cleanedValue = strtoupper(trim($matches[1]));
-
-        // Ahora $cleanedValue contiene el valor convertido a mayúsculas y sin espacios al principio o al final
-        echo "Valor limpio: $cleanedValue";
-    } else {
-        // El comando no coincide con el formato esperado
-        echo "Comando no válido";
-    }
-
     switch ($message) {
         case '/start':
             $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
@@ -74,41 +58,9 @@ if (isset($update->message->text)) {
 
         case '/ruc':
             $telegram->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
-
             // Esperar la siguiente respuesta del usuario
             break;
 
-        case '/ruc2':
-            $bot->command('status', function ($message) use ($bot, $mysqli) {
-                // Expresión regular para limpiar y validar el comando "/insertar"
-                $pattern = "/\/ruc(\s+([0-9a-zA-Z]+))?/";
-                $matches = [];
-
-                if (preg_match($pattern, $message, $matches)) {
-                    // El comando coincide, $matches[2] contiene el posible argumento
-                    $argument = isset($matches[2]) ? strtoupper(trim($matches[2])) : null;
-
-                    if ($argument !== null && !isValidNumber($argument)) {
-                        $telegram->sendMessage($chatId, 'Número de documento no válido.');
-                    } else {
-                        // Si hay un argumento, consultar el webservice con ese argumento
-                        $data = ($argument !== null) ? consultarWS($argument) : 'Consulta sin argumentos.';
-
-                        // Enviar la respuesta al usuario
-                        $telegram->sendMessage($chatId, $data);
-                    }
-                } else {
-                    // El comando no coincide con el formato esperado
-                    $telegram->sendMessage($chatId, 'Comando no válido. Utiliza /Consultaruc seguido de un número o texto.');
-                }
-            $data = consultarWS($nrodocumento);
-                if (empty($data)) {
-                    $data = 'Timer is not started.';
-                }
-                $bot->sendMessage($message->getChat()->getId(), $data);
-            });
-            $telegram->sendMessage($chatId, $data);
-            break;
         case '/info':
             $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
             $telegram->sendMessage($chatId, $infoMessage, 'markdown');
