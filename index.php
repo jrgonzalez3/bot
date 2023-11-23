@@ -47,7 +47,7 @@ $webhookUrl = WEBHOOKURL;
 try {
     $bot = new Client($botToken);
 
-    $bot->command('info', function ($message) use ($bot) {
+    $bot->command('about', function ($message) use ($bot) {
         $chatId = $message->getChat()->getId();
         $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
         $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
