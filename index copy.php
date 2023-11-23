@@ -1,13 +1,12 @@
 <?php
+use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Client;
+
 require_once 'include/vendor/autoload.php';
-
 loadEnv();
-
 function loadEnv()
 {
     $envFilePath = __DIR__ . '/.env';
-
     // Check if the .env file exists
     if (!file_exists($envFilePath)) {
         die('.env file not found. Please create one.');
@@ -32,20 +31,23 @@ function loadEnv()
             // Define constant
             $constantName = strtoupper(str_replace(' ', '_', $key));
             defined($constantName) or define($constantName, getenv($key));
+
+            // echo "</br> $constantName --- Configured...\n";
         } else {
             echo "Error configuring $key...\n";
         }
     }
 }
-
 $botToken = TGBOTTOKEN;
 $webhookUrl = WEBHOOKURL;
-try {
-    $bot = new Client($botToken);
-    //$bot->run();
-} catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage();
-}
+
+$telegram = new BotApi($botToken);
+$update = json_decode(file_get_contents('php://input'));
+
+$bot = new Client($botToken);
+$bot->run();
+
+die;
 
 $bot->command('ruc', function ($message) use ($bot) {
     $chatId = $message->getChat()->getId();
@@ -59,71 +61,104 @@ $bot->command('info', function ($message) use ($bot) {
     $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
 });
 
-$bot->on(function ($update) use ($bot) {
-    $message = $update->getMessage();
-    $chatId = $message->getChat()->getId();
-    $text = trim($message->getText());
 
-    switch ($text) {
+
+if (isset($update->message->text)) {
+    $chatId = $update->message->chat->id;
+    $message = $update->message->text;
+    switch ($message) {
+        case '/start':
+            $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
+            $data = $bienvenida;
+            $data .= $bienvenida . "  /ruc - Para consultar el Ruc\n";
+            $telegram->sendMessage($chatId, $data);
+            break;
+
         case '/ruc':
-            $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+            $telegram->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
             // Esperar la siguiente respuesta del usuario
             break;
 
         case '/info':
             $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
-            $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+            $telegram->sendMessage($chatId, $infoMessage, 'markdown');
             break;
 
-        default:
-            $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
-            $bot->sendMessage($chatId, $defaultMessage);
-            break;
     }
-}, function ($message) {
-    return true; // Este handler siempre se ejecuta
-});
 
-$bot->on(function ($update) use ($bot) {
-    $message = $update->getMessage();
-    $chatId = $message->getChat()->getId();
-    $text = trim($message->getText());
+
+    $bot->on(function ($update) use ($bot) {
+        $message = $update->getMessage();
+        $chatId = $message->getChat()->getId();
+        $text = trim($message->getText());
+
+        switch ($text) {
+            case '/ruc':
+                // Aquí podrías realizar más lógica si es necesario antes de enviar el mensaje
+                $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+                // Esperar la siguiente respuesta del usuario
+                break;
+
+            case '/info':
+                // Aquí podrías realizar más lógica si es necesario antes de enviar el mensaje
+                $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+                $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+                break;
+
+            default:
+                $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
+                $bot->sendMessage($chatId, $defaultMessage);
+                break;
+        }
+    }, function ($message) {
+        return true; // Este handler siempre se ejecuta
+    });
+
+
+} elseif (isset($update->message->reply_to_message)) {
+    // Si se recibe una respuesta al mensaje anterior (solicitando el RUC)
+    $chatId = $update->message->chat->id;
+    $message = $update->message->text;
 
     // Expresión regular para extraer el número de RUC sin dígito verificador
     $pattern = "/([0-9]+)/";
     $matches = [];
 
-    if (preg_match($pattern, $text, $matches)) {
+    if (preg_match($pattern, $message, $matches)) {
         $rucNumber = $matches[1];
 
         // Realizar la consulta al webservice con el número de RUC
         $data = consultarWS($rucNumber);
 
         // Enviar la respuesta al usuario
-        $bot->sendMessage($chatId, $data);
+        $telegram->sendMessage($chatId, $data);
     } else {
-        $bot->sendMessage($chatId, 'Número de RUC no válido. Por favor, inténtalo de nuevo.');
+        $telegram->sendMessage($chatId, 'Número de RUC no válido. Por favor, inténtalo de nuevo.');
     }
-}, function ($message) {
-    return true; // Este handler siempre se ejecuta
-});
+
+}
 
 function isValidNumber($nrodocumento)
 {
+    // Realiza aquí cualquier validación adicional que puedas necesitar
+    // Por ejemplo, longitud mínima, solo números, etc.
     return is_numeric($nrodocumento) && $nrodocumento > 0;
 }
+
 
 function consultarWS($nrodocumento)
 {
     if ($nrodocumento > 0) {
         $url = URLAPIFS . '/ruc/' . $nrodocumento;
         $resp = httpPost($url, APIKEYFS);
-        return trim($resp);
+        echo trim($resp);
     } else {
-        return json_encode([
-            "Status" => false,
-            "textStatus" => "Error Consulta",
-        ]);
+        echo json_encode(
+            array(
+                "Status" => false,
+                "textStatus" => "Error Consulta",
+            )
+        );
     }
 }
 
@@ -133,6 +168,7 @@ function httpPost($url, $apikey)
     if (ENVIRONMENT != 'production') {
         $ssl = false;
     } else {
+
         $ssl = true;
     }
 
@@ -163,3 +199,7 @@ function httpPost($url, $apikey)
     curl_close($curl);
     return $response;
 }
+
+
+
+
