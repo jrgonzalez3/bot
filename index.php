@@ -68,33 +68,88 @@ if (isset($update->message->text)) {
         case '/start':
             $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
             $data = $bienvenida;
-            $data .= $bienvenida . " /menu - Para mostrar el menu principal\n";
-            $telegram->sendMessage($chatId, $data);
-            break;
-        case '/menu':
-            $menu = "/menu - Este es el menu principal\n";
-            $menu .= "/Consultaruc - Para mostrar consultar el Ruc\n";
-            $telegram->sendMessage($chatId, $menu);
-            break;
-        case '/Consultaruc':
-            $data = consultarWS($nrodocumento);
+            $data .= $bienvenida . "  /Consultaruc - Para mostrar consultar el Ruc\n";
             $telegram->sendMessage($chatId, $data);
             break;
 
+        case '/ConsultarRuc':
+            $telegram->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+
+            // Esperar la siguiente respuesta del usuario
+            break;
+
+        case '/Consultaruc':
+            $bot->command('status', function ($message) use ($bot, $mysqli) {
+                // Expresión regular para limpiar y validar el comando "/insertar"
+                $pattern = "/\/Consultaruc(\s+([0-9a-zA-Z]+))?/";
+                $matches = [];
+
+                if (preg_match($pattern, $message, $matches)) {
+                    // El comando coincide, $matches[2] contiene el posible argumento
+                    $argument = isset($matches[2]) ? strtoupper(trim($matches[2])) : null;
+
+                    if ($argument !== null && !isValidNumber($argument)) {
+                        $telegram->sendMessage($chatId, 'Número de documento no válido.');
+                    } else {
+                        // Si hay un argumento, consultar el webservice con ese argumento
+                        $data = ($argument !== null) ? consultarWS($argument) : 'Consulta sin argumentos.';
+
+                        // Enviar la respuesta al usuario
+                        $telegram->sendMessage($chatId, $data);
+                    }
+                } else {
+                    // El comando no coincide con el formato esperado
+                    $telegram->sendMessage($chatId, 'Comando no válido. Utiliza /Consultaruc seguido de un número o texto.');
+                }
+            $data = consultarWS($nrodocumento);
+                if (empty($data)) {
+                    $data = 'Timer is not started.';
+                }
+                $bot->sendMessage($message->getChat()->getId(), $data);
+            });
+            $telegram->sendMessage($chatId, $data);
+            break;
+        case '/info':
+            $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+            $telegram->sendMessage($chatId, $infoMessage, 'markdown');
+            break;
         default:
-            $defaultMessage = "Mi no entender ese comando";
+            $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /menu para ver las opciones disponibles.";
             $telegram->sendMessage($chatId, $defaultMessage);
             break;
 
 
+
     }
+} elseif (isset($update->message->reply_to_message)) {
+    // Si se recibe una respuesta al mensaje anterior (solicitando el RUC)
+    $chatId = $update->message->chat->id;
+    $message = $update->message->text;
 
+    // Expresión regular para extraer el número de RUC sin dígito verificador
+    $pattern = "/([0-9]+)/";
+    $matches = [];
 
+    if (preg_match($pattern, $message, $matches)) {
+        $rucNumber = $matches[1];
 
+        // Realizar la consulta al webservice con el número de RUC
+        $data = consultarWS($rucNumber);
 
+        // Enviar la respuesta al usuario
+        $telegram->sendMessage($chatId, $data);
+    } else {
+        $telegram->sendMessage($chatId, 'Número de RUC no válido. Por favor, inténtalo de nuevo.');
+    }
 
 }
 
+function isValidNumber($nrodocumento)
+{
+    // Realiza aquí cualquier validación adicional que puedas necesitar
+    // Por ejemplo, longitud mínima, solo números, etc.
+    return is_numeric($nrodocumento) && $nrodocumento > 0;
+}
 
 
 function consultarWS($nrodocumento)
