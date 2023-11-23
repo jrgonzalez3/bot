@@ -47,41 +47,16 @@ $webhookUrl = WEBHOOKURL;
 try {
     $bot = new Client($botToken);
 
-    $bot->command('ruc', function ($message) use ($bot) {
-        $chatId = $message->getChat()->getId();
-        $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
-        // Esperar la siguiente respuesta del usuario
-    });
-
     $bot->command('info', function ($message) use ($bot) {
         $chatId = $message->getChat()->getId();
         $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
         $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
     });
 
-    $bot->on(function ($update) use ($bot) {
-        $message = $update->getMessage();
+    $bot->command('ruc', function ($message) use ($bot) {
         $chatId = $message->getChat()->getId();
-        $text = trim($message->getText());
-
-        switch ($text) {
-            case '/ruc':
-                $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
-                // Esperar la siguiente respuesta del usuario
-                break;
-
-            case '/info':
-                $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
-                $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
-                break;
-
-            default:
-                $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
-                $bot->sendMessage($chatId, $defaultMessage);
-                break;
-        }
-    }, function ($message) {
-        return true; // Este handler siempre se ejecuta
+        $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+        // Esperar la siguiente respuesta del usuario
     });
 
     $bot->on(function ($update) use ($bot) {
@@ -111,10 +86,6 @@ try {
     $bot->run();
 } catch (Exception $e) {
     // Obtén el chat ID directamente de la actualización del mensaje
-    $update = $e->getUpdate();
-    $chatId = $update->getMessage()->getChat()->getId();
-    $bot = new Client($botToken);
-    $bot->sendMessage($chatId, $e->getMessage());
     echo 'Error: ' . $e->getMessage();
 }
 
