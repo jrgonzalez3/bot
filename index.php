@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'include/vendor/autoload.php';
 use TelegramBot\Api\Client;
 
@@ -107,6 +110,11 @@ try {
 
     $bot->run();
 } catch (Exception $e) {
+    // Obtén el chat ID directamente de la actualización del mensaje
+    $update = $e->getUpdate();
+    $chatId = $update->getMessage()->getChat()->getId();
+    $bot = new Client($botToken);
+    $bot->sendMessage($chatId, $e->getMessage());
     echo 'Error: ' . $e->getMessage();
 }
 
