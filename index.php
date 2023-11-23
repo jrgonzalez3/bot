@@ -2,7 +2,6 @@
 use TelegramBot\Api\BotApi;
 
 require_once 'include/vendor/autoload.php';
-
 loadEnv();
 function loadEnv()
 {
@@ -41,8 +40,28 @@ function loadEnv()
 
 $botToken = TGBOTTOKEN;
 $webhookUrl = WEBHOOKURL;
+
+
+
 $telegram = new BotApi($botToken);
 $update = json_decode(file_get_contents('php://input'));
+
+$bot = new Client($botToken);
+$bot->run();
+
+
+$bot->command('ruc', function ($message) use ($bot) {
+    $chatId = $message->getChat()->getId();
+    $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+    // Esperar la siguiente respuesta del usuario
+});
+
+$bot->command('info', function ($message) use ($bot) {
+    $chatId = $message->getChat()->getId();
+    $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+    $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+});
+
 
 
 if (isset($update->message->text)) {
@@ -67,6 +86,36 @@ if (isset($update->message->text)) {
             break;
 
     }
+
+
+    $bot->on(function ($update) use ($bot) {
+        $message = $update->getMessage();
+        $chatId = $message->getChat()->getId();
+        $text = trim($message->getText());
+
+        switch ($text) {
+            case '/ruc':
+                // Aquí podrías realizar más lógica si es necesario antes de enviar el mensaje
+                $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+                // Esperar la siguiente respuesta del usuario
+                break;
+
+            case '/info':
+                // Aquí podrías realizar más lógica si es necesario antes de enviar el mensaje
+                $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+                $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+                break;
+
+            default:
+                $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
+                $bot->sendMessage($chatId, $defaultMessage);
+                break;
+        }
+    }, function ($message) {
+        return true; // Este handler siempre se ejecuta
+    });
+
+
 } elseif (isset($update->message->reply_to_message)) {
     // Si se recibe una respuesta al mensaje anterior (solicitando el RUC)
     $chatId = $update->message->chat->id;
