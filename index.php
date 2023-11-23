@@ -68,7 +68,7 @@ if (isset($update->message->text)) {
         case '/start':
             $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
             $data = $bienvenida;
-            $data .= "/menu - Para mostrar el menu principal\n";
+            $data .= $bienvenida . " /menu - Para mostrar el menu principal\n";
             $telegram->sendMessage($chatId, $data);
             break;
         case '/menu':
