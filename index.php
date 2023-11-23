@@ -1,6 +1,6 @@
 <?php
 use TelegramBot\Api\BotApi;
-
+use TelegramBot\Api\Client;
 require_once 'include/vendor/autoload.php';
 loadEnv();
 function loadEnv()
