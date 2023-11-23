@@ -52,7 +52,7 @@ if (isset($update->message->text)) {
         case '/start':
             $bienvenida = "Hola, Bienvenido!, Gracias por estar aqui, estos son los comandos que puedes usar \n\n";
             $data = $bienvenida;
-            $data .= $bienvenida . "  /Consultaruc - Para mostrar consultar el Ruc\n";
+            $data .= $bienvenida . "  /ruc - Para consultar el Ruc\n";
             $telegram->sendMessage($chatId, $data);
             break;
 
@@ -65,12 +65,6 @@ if (isset($update->message->text)) {
             $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
             $telegram->sendMessage($chatId, $infoMessage, 'markdown');
             break;
-        default:
-            $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /menu para ver las opciones disponibles.";
-            $telegram->sendMessage($chatId, $defaultMessage);
-            break;
-
-
 
     }
 } elseif (isset($update->message->reply_to_message)) {
