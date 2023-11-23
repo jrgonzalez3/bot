@@ -72,16 +72,16 @@ if (isset($update->message->text)) {
             $telegram->sendMessage($chatId, $data);
             break;
 
-        case '/ConsultarRuc':
+        case '/ruc':
             $telegram->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
 
             // Esperar la siguiente respuesta del usuario
             break;
 
-        case '/Consultaruc':
+        case '/ruc2':
             $bot->command('status', function ($message) use ($bot, $mysqli) {
                 // Expresión regular para limpiar y validar el comando "/insertar"
-                $pattern = "/\/Consultaruc(\s+([0-9a-zA-Z]+))?/";
+                $pattern = "/\/ruc(\s+([0-9a-zA-Z]+))?/";
                 $matches = [];
 
                 if (preg_match($pattern, $message, $matches)) {
