@@ -41,8 +41,6 @@ function loadEnv()
 $botToken = TGBOTTOKEN;
 $webhookUrl = WEBHOOKURL;
 
-
-
 $telegram = new BotApi($botToken);
 $update = json_decode(file_get_contents('php://input'));
 
