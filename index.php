@@ -1,6 +1,6 @@
 <?php
-use TelegramBot\Api\Client;
 require_once 'include/vendor/autoload.php';
+use TelegramBot\Api\Client;
 
 loadEnv();
 
@@ -40,73 +40,75 @@ function loadEnv()
 
 $botToken = TGBOTTOKEN;
 $webhookUrl = WEBHOOKURL;
+
 try {
     $bot = new Client($botToken);
-    //$bot->run();
+
+    $bot->command('ruc', function ($message) use ($bot) {
+        $chatId = $message->getChat()->getId();
+        $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+        // Esperar la siguiente respuesta del usuario
+    });
+
+    $bot->command('info', function ($message) use ($bot) {
+        $chatId = $message->getChat()->getId();
+        $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+        $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+    });
+
+    $bot->on(function ($update) use ($bot) {
+        $message = $update->getMessage();
+        $chatId = $message->getChat()->getId();
+        $text = trim($message->getText());
+
+        switch ($text) {
+            case '/ruc':
+                $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
+                // Esperar la siguiente respuesta del usuario
+                break;
+
+            case '/info':
+                $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
+                $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
+                break;
+
+            default:
+                $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
+                $bot->sendMessage($chatId, $defaultMessage);
+                break;
+        }
+    }, function ($message) {
+        return true; // Este handler siempre se ejecuta
+    });
+
+    $bot->on(function ($update) use ($bot) {
+        $message = $update->getMessage();
+        $chatId = $message->getChat()->getId();
+        $text = trim($message->getText());
+
+        // Expresión regular para extraer el número de RUC sin dígito verificador
+        $pattern = "/([0-9]+)/";
+        $matches = [];
+
+        if (preg_match($pattern, $text, $matches)) {
+            $rucNumber = $matches[1];
+
+            // Realizar la consulta al webservice con el número de RUC
+            $data = consultarWS($rucNumber);
+
+            // Enviar la respuesta al usuario
+            $bot->sendMessage($chatId, $data);
+        } else {
+            $bot->sendMessage($chatId, 'Número de RUC no válido. Por favor, inténtalo de nuevo.');
+        }
+    }, function ($message) {
+        return true; // Este handler siempre se ejecuta
+    });
+
+    $bot->run();
 } catch (Exception $e) {
     echo 'Error: ' . $e->getMessage();
 }
-
-$bot->command('ruc', function ($message) use ($bot) {
-    $chatId = $message->getChat()->getId();
-    $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
-    // Esperar la siguiente respuesta del usuario
-});
-
-$bot->command('info', function ($message) use ($bot) {
-    $chatId = $message->getChat()->getId();
-    $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
-    $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
-});
-
-$bot->on(function ($update) use ($bot) {
-    $message = $update->getMessage();
-    $chatId = $message->getChat()->getId();
-    $text = trim($message->getText());
-
-    switch ($text) {
-        case '/ruc':
-            $bot->sendMessage($chatId, 'Por favor, introduce el número de RUC sin dígito verificador.');
-            // Esperar la siguiente respuesta del usuario
-            break;
-
-        case '/info':
-            $infoMessage = "Justo González\nURL: [jrgonzalez3.github.io](https://jrgonzalez3.github.io)";
-            $bot->sendMessage($chatId, $infoMessage, null, true, null, null, 'markdown');
-            break;
-
-        default:
-            $defaultMessage = "Lo siento, no entendí ese comando. Puedes usar /ruc o /info para ver las opciones disponibles.";
-            $bot->sendMessage($chatId, $defaultMessage);
-            break;
-    }
-}, function ($message) {
-    return true; // Este handler siempre se ejecuta
-});
-
-$bot->on(function ($update) use ($bot) {
-    $message = $update->getMessage();
-    $chatId = $message->getChat()->getId();
-    $text = trim($message->getText());
-
-    // Expresión regular para extraer el número de RUC sin dígito verificador
-    $pattern = "/([0-9]+)/";
-    $matches = [];
-
-    if (preg_match($pattern, $text, $matches)) {
-        $rucNumber = $matches[1];
-
-        // Realizar la consulta al webservice con el número de RUC
-        $data = consultarWS($rucNumber);
-
-        // Enviar la respuesta al usuario
-        $bot->sendMessage($chatId, $data);
-    } else {
-        $bot->sendMessage($chatId, 'Número de RUC no válido. Por favor, inténtalo de nuevo.');
-    }
-}, function ($message) {
-    return true; // Este handler siempre se ejecuta
-});
 
 function isValidNumber($nrodocumento)
 {
@@ -163,3 +165,4 @@ function httpPost($url, $apikey)
     curl_close($curl);
     return $response;
 }
+?>
