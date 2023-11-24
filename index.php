@@ -7,6 +7,10 @@ use TelegramBot\Api\Client;
 
 loadEnv();
 
+$request = file_get_contents("php://input");
+$fecha = date('Y-m-d H:i:s');
+file_put_contents("registro_de_actualizaciones.log", $fecha . ' - ' . $request, FILE_APPEND);
+$request = json_decode($request);
 function loadEnv()
 {
     $envFilePath = __DIR__ . '/.env';
@@ -46,6 +50,7 @@ $webhookUrl = WEBHOOKURL;
 
 try {
     $bot = new Client($botToken);
+
 
     $bot->command('about', function ($message) use ($bot) {
         $chatId = $message->getChat()->getId();
